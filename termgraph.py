@@ -15,7 +15,7 @@ from colorama import init
 init()
 
 
-test, test2, maxi = [], [], 0
+vertical_list, zipped_list, value_list, maxi = [], [], [], 0
 # ANSI escape SGR Parameters color codes
 available_colors = {
     'red': 91,
@@ -71,7 +71,7 @@ def horiontal_rows(labels, data, normal_dat, args):
         value = data[i]
         num_blocks = normal_dat[i]
         tail = ' {}{}'.format(args['format'].format(value), args['suffix'])
-        #test.append([label, value, int(num_blocks), val_min, tail, args['color']]) print(test)
+
         yield (label, value, int(num_blocks), val_min, tail, args['color'])
 
 def print_row(label, value, num_blocks, val_min, tail, color):
@@ -112,27 +112,29 @@ def chart(labels, data, args):
         # Print the row
         print_row(*row)
 
-def vertical(label, value, num_blocks, val_min, tail, color):
-    TICK = '▇' # ▇▇▅█   ▇▁ ⟦⟧ ▇▁
+def vertically(label, value, num_blocks, val_min, tail, color):
+    TICK = '▇' # ▇▇▅██   ▇▁ ⟦⟧ ▇▁
     SM_TICK = '▁'
-    global maxi
+
+    global maxi, value_list
+
+    value_list.append(str(value))
 
     if maxi < num_blocks:
         maxi = num_blocks
 
     if num_blocks > 0:
-        test.append((TICK * num_blocks))
+        vertical_list.append((TICK * num_blocks))
     else:
-        test.append(SM_TICK)
+        vertical_list.append(SM_TICK)
 
-    for row in zip_longest(*test, fillvalue='  '):
-        #print(''.join(row))
-        test2.append(row)
+    for row in zip_longest(*vertical_list, fillvalue='  '):
+        zipped_list.append(row)
 
-    counter,test4 = 0, []
+    counter,result_list = 0, []
 
-    for i in reversed(test2):
-        test4.append(i)
+    for i in reversed(zipped_list):
+        result_list.append(i)
         counter+=1
 
         if maxi == args['width']:
@@ -141,19 +143,26 @@ def vertical(label, value, num_blocks, val_min, tail, color):
         else:
             if counter == maxi:
                 break
-    return test4
+    return result_list
 
-def print_vertical(test11, labels):
+def print_vertical(vertical_rows, labels):
+
     color_used = available_colors.get(args['color'], None)
 
     if color_used:
         sys.stdout.write(f'\033[{color_used}m') # Start to write colorized.
 
-    for j in test11:
+    for j in vertical_rows:
         print(*j)
     sys.stdout.write('\033[0m')
 
-    for k in zip(*labels):
+    print("-" * len(j) + "Values" + "-" * len(j))
+
+    for l in zip_longest(*value_list, fillvalue=' '):
+        print("  ".join(l))
+    print("-" * len(j) + "Labels" + "-" * len(j))
+
+    for k in zip_longest(*labels,fillvalue=''):
         print("  ".join(k))
 
 def main(args):
@@ -168,10 +177,11 @@ def main(args):
     # Generate data for a row.
     for row in horiontal_rows(labels, data, normal_dat, args):
         # Print the row
-        print_row(*row)
-        test11 = vertical(*row)
-
-    print_vertical(test11, labels)
+        if not args['vertical']:
+            print_row(*row)
+        vertic = vertically(*row)
+    if args['vertical']:
+        print_vertical(vertic, labels)
 
 def init():
     parser = argparse.ArgumentParser(description='draw basic graphs on terminal')
@@ -186,6 +196,7 @@ def init():
                         help='string to add as a suffix to all data points.')
     parser.add_argument('--ignore-labels', action='store_true',
                         help='Do not print the label column')
+    parser.add_argument('--vertical', action= 'store_true', help='Choose Vertical represantion')
     parser.add_argument('--color', choices=available_colors, help='graph bar color')
     args = vars(parser.parse_args())
     return args
@@ -204,7 +215,7 @@ def read_data(filename):
     # TODO: add verbose flag
     stdin = filename == '-'
 
-    reading_from = f'Readin data from {("stdin" if stdin else filename)}'
+    reading_from = f'Reading data from {("stdin" if stdin else filename)}'
     hyphen_num = len(reading_from)
 
     print('\n'+hyphen_num*'-'+'\n'+reading_from+'\n'+hyphen_num*'-'+'\n')
