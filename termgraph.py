@@ -243,7 +243,11 @@ def chart(len_categories, colors, data, args, labels):
                 else:
                     vertic = vertically(*row)
             if args['vertical'] and len_categories == 1:
-                print_vertical(vertic, labels, colors[0])
+                if colors:
+                    color = colors[0]
+                else:
+                    color = None
+                print_vertical(vertic, labels, color)
             print()
 
 
