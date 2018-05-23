@@ -153,24 +153,33 @@ def stacked_graph(labels, data, normal_data, len_categories, args, colors):
 
 vertical_list, zipped_list, value_list, maxi = [], [], [], 0
 
+# Prepares the vertical graph.
+# The whole graph is printed through the print_vertical function.
 def vertically(value, num_blocks, val_min, color):
     global maxi, value_list
 
+    # Adds the value to a value_list later used for printing.
     value_list.append(str(value))
-
+    
+    # In case the number of blocks at the end of the normalization is less
+    # than the default number, uses the maxi variable to escape.
     if maxi < num_blocks:
         maxi = num_blocks
-
+    
+    # Appends Normal or Small TICK.
     if num_blocks > 0:
         vertical_list.append((TICK * num_blocks))
     else:
         vertical_list.append(SM_TICK)
-
+    
+    # Zip_longest method in order to turn them vertically.
     for row in zip_longest(*vertical_list, fillvalue='  '):
         zipped_list.append(row)
 
     counter,result_list = 0, []
-
+    
+    # Combined with the maxi variable, escapes the appending method at
+    # the correct point or the default one (width).
     for i in reversed(zipped_list):
         result_list.append(i)
         counter+=1
@@ -181,23 +190,30 @@ def vertically(value, num_blocks, val_min, color):
         else:
             if counter == maxi:
                 break
+    # Return a list of rows which will be used to print the result vertically.
     return result_list
 
-
+# Prints the whole vertical graph.
 def print_vertical(vertical_rows, labels, color):
+    # Prints the color (if any was given as a parameter.
     if color:
         sys.stdout.write(f'\033[{color}m') # Start to write colorized.
 
+    # Printing process.
     for j in vertical_rows:
         print(*j)
-    sys.stdout.write('\033[0m')
 
+    # End of printing colored.
+    sys.stdout.write('\033[0m')
+    
     print("-" * len(j) + "Values" + "-" * len(j))
 
+    # Prints Values.
     for l in zip_longest(*value_list, fillvalue=' '):
         print("  ".join(l))
     print("-" * len(j) + "Labels" + "-" * len(j))
 
+    # Prints Labels.
     for k in zip_longest(*labels,fillvalue=''):
         print("  ".join(k))
 
