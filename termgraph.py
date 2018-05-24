@@ -133,10 +133,6 @@ def print_row(value, num_blocks, val_min, color):
 # Each row is printed through print_row function.
 def stacked_graph(labels, data, normal_data, len_categories, args, colors):
     val_min = findMinMax(data, 'min')
-    # If user hasn't inserted colors, pick the first n colors
-    # from the dict (n = number of categories).
-    if not colors:
-        colors = [v for v in list(available_colors.values())[:len_categories]]
     for i in range(len(labels)):
         if args['ignore_labels']:
             # Hide the labels.
@@ -316,6 +312,10 @@ def check_data(labels, data, len_categories, color):
     if args['vertical'] and len_categories > 1 and not args['different_scale']:
         print(">> Error: Vertical graph chart for multiple series of same scale is not supported yet.")
         sys.exit(1)
+    # If user hasn't inserted colors, pick the first n colors
+    # from the dict (n = number of categories).
+    if args['stacked'] and not colors:
+        colors = [v for v in list(available_colors.values())[:len_categories]]
     return colors
 
 # Prints a tick and the category's name for each category above the graph.
