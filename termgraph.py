@@ -151,33 +151,28 @@ def stacked_graph(labels, data, normal_data, len_categories, args, colors):
         tail = ' {}{}'.format(args['format'].format(sum(values)), args['suffix'])
         print(tail)
 
-vertical_list, zipped_list, value_list, maxi = [], [], [], 0
+value_list, zipped_list, vertical_list, maxi = [], [], [], 0
 
 # Prepares the vertical graph.
 # The whole graph is printed through the print_vertical function.
 def vertically(value, num_blocks, val_min, color):
     global maxi, value_list
-
-    # Adds the value to a value_list later used for printing.
+    # Add the value to a value_list later used for printing.
     value_list.append(str(value))
-    
     # In case the number of blocks at the end of the normalization is less
-    # than the default number, uses the maxi variable to escape.
+    # than the default number, use the maxi variable to escape.
     if maxi < num_blocks:
         maxi = num_blocks
-    
-    # Appends Normal or Small TICK.
+    # Append Normal or Small TICK.
     if num_blocks > 0:
         vertical_list.append((TICK * num_blocks))
     else:
         vertical_list.append(SM_TICK)
-    
     # Zip_longest method in order to turn them vertically.
     for row in zip_longest(*vertical_list, fillvalue='  '):
         zipped_list.append(row)
 
-    counter,result_list = 0, []
-    
+    counter, result_list = 0, []
     # Combined with the maxi variable, escapes the appending method at
     # the correct point or the default one (width).
     for i in reversed(zipped_list):
@@ -195,33 +190,27 @@ def vertically(value, num_blocks, val_min, color):
 
 # Prints the whole vertical graph.
 def print_vertical(vertical_rows, labels, color):
-    # Prints the color (if any was given as a parameter.
+    # Print the color (if any was given as a parameter).
     if color:
         sys.stdout.write(f'\033[{color}m') # Start to write colorized.
-
-    # Printing process.
+    # Printing process
     for j in vertical_rows:
         print(*j)
-
-    # End of printing colored.
     sys.stdout.write('\033[0m')
-    
+    # End of printing colored
     print("-" * len(j) + "Values" + "-" * len(j))
-
-    # Prints Values.
+    # Print Values
     for l in zip_longest(*value_list, fillvalue=' '):
         print("  ".join(l))
     print("-" * len(j) + "Labels" + "-" * len(j))
-
-    # Prints Labels.
+    # Print Labels
     for k in zip_longest(*labels,fillvalue=''):
         print("  ".join(k))
-
 
 # Handles the normalization of data and the print of the graph.
 def chart(len_categories, colors, data, args, labels):
     if len_categories > 1:
-        # Stacked graph chart
+        # Stacked chart
         if args['stacked']:
             normal_dat = normalize(data, args['width'])
             stacked_graph(labels, data, normal_dat, len_categories, args, colors)
@@ -238,16 +227,18 @@ def chart(len_categories, colors, data, args, labels):
                     # Normalize data, handle negatives.
                     normal_category_data = normalize(category_data, args['width'])
                     # Generate data for a row.
-                    for row in horiontal_rows(labels, category_data, normal_category_data, args, [colors[i]]):
+                    for row in horiontal_rows(labels, category_data,
+                      normal_category_data, args, [colors[i]]):
                         # Print the row
                         if not args['vertical']:
                             print_row(*row)
                         else:
                             vertic = vertically(*row)
-                    # Vertical graph chart
+                    # Vertical chart
                     if args['vertical']:
                         print_vertical(vertic, labels, colors[i])
                     print()
+                    value_list.clear(), zipped_list.clear(), vertical_list.clear()
     # One category/Multiple series chart with same scale
     # All-together normalization
     if len_categories == 1 or not args['different_scale']:
