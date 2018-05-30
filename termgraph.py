@@ -82,6 +82,7 @@ def normalize(data, width):
 # Each row is printed through print_row function.
 def horiontal_rows(labels, data, normal_dat, args, colors):
     val_min = findMinMax(data, 'min')
+
     for i in range(len(labels)):
         if args['ignore_labels']:
             # Hide the labels.
@@ -91,8 +92,9 @@ def horiontal_rows(labels, data, normal_dat, args, colors):
 
         values = data[i]
         num_blocks = normal_dat[i]
+
         for j in range(len(values)):
-            # In Multiple series chart 1st category has label at the beginning,
+            # In Multiple series graph 1st category has label at the beginning,
             # whereas the rest categories have only spaces.
             if j > 0:
                 len_label = len(label)
@@ -107,7 +109,6 @@ def horiontal_rows(labels, data, normal_dat, args, colors):
             yield (values[j], int(num_blocks[j]), val_min, color)
             if not args['vertical']:
                 print(tail)
-
 
 # Prints a row of the horizontal graph.
 def print_row(value, num_blocks, val_min, color):
@@ -133,6 +134,7 @@ def print_row(value, num_blocks, val_min, color):
 # Each row is printed through print_row function.
 def stacked_graph(labels, data, normal_data, len_categories, args, colors):
     val_min = findMinMax(data, 'min')
+
     for i in range(len(labels)):
         if args['ignore_labels']:
             # Hide the labels.
@@ -142,6 +144,7 @@ def stacked_graph(labels, data, normal_data, len_categories, args, colors):
         print(label, end="")
         values = data[i]
         num_blocks = normal_data[i]
+
         for j in range(len(values)):
             print_row(values[j], int(num_blocks[j]), val_min, colors[j])
         tail = ' {}{}'.format(args['format'].format(sum(values)), args['suffix'])
@@ -153,13 +156,13 @@ value_list, zipped_list, vertical_list, maxi = [], [], [], 0
 # The whole graph is printed through the print_vertical function.
 def vertically(value, num_blocks, val_min, color):
     global maxi, value_list
-    # Add the value to a value_list later used for printing.
+
     value_list.append(str(value))
     # In case the number of blocks at the end of the normalization is less
     # than the default number, use the maxi variable to escape.
     if maxi < num_blocks:
         maxi = num_blocks
-    # Append Normal or Small TICK.
+
     if num_blocks > 0:
         vertical_list.append((TICK * num_blocks))
     else:
@@ -185,35 +188,36 @@ def vertically(value, num_blocks, val_min, color):
     return result_list
 
 # Prints the whole vertical graph.
-def print_vertical(vertical_rows, labels, color):
-    # Print the color (if any was given as a parameter).
+def print_vertical(vertical_rows, labels, color, args):
+
     if color:
         sys.stdout.write(f'\033[{color}m') # Start to write colorized.
-    # Printing process
+
     for j in vertical_rows:
         print(*j)
-    sys.stdout.write('\033[0m')
-    # End of printing colored
+    sys.stdout.write('\033[0m') # End of printing colored
+
     print("-" * len(j) + "Values" + "-" * len(j))
     # Print Values
     for l in zip_longest(*value_list, fillvalue=' '):
         print("  ".join(l))
-    print("-" * len(j) + "Labels" + "-" * len(j))
-    # Print Labels
-    for k in zip_longest(*labels,fillvalue=''):
-        print("  ".join(k))
+    if args['ignore_labels'] == False:
+        print("-" * len(j) + "Labels" + "-" * len(j))
+        # Print Labels
+        for k in zip_longest(*labels,fillvalue=''):
+            print("  ".join(k))
 
 # Handles the normalization of data and the print of the graph.
 def chart(len_categories, colors, data, args, labels):
     if len_categories > 1:
-        # Stacked chart
+        # Stacked graph
         if args['stacked']:
             normal_dat = normalize(data, args['width'])
             stacked_graph(labels, data, normal_dat, len_categories, args, colors)
         else:
             if not colors:
                 colors = [None] * len_categories
-            # Multiple series chart with different scales
+            # Multiple series graph with different scales
             # Normalization per category
             if args['different_scale']:
                 for i in range(len_categories):
@@ -230,12 +234,12 @@ def chart(len_categories, colors, data, args, labels):
                             print_row(*row)
                         else:
                             vertic = vertically(*row)
-                    # Vertical chart
+                    # Vertical graph
                     if args['vertical']:
-                        print_vertical(vertic, labels, colors[i])
+                        print_vertical(vertic, labels, colors[i], args)
                     print()
                     value_list.clear(), zipped_list.clear(), vertical_list.clear()
-    # One category/Multiple series chart with same scale
+    # One category/Multiple series graph with same scale
     # All-together normalization
     if len_categories == 1 or not args['different_scale']:
         if not args['stacked']:
@@ -250,19 +254,18 @@ def chart(len_categories, colors, data, args, labels):
                     color = colors[0]
                 else:
                     color = None
-                print_vertical(vertic, labels, color)
+                print_vertical(vertic, labels, color, args)
             print()
-
 
 # Main function
 def main(args):
-    # determine type of graph
-    # read data
+    # Determine type of graph
+    # Read data
     categories, labels, data, colors = read_data(args['filename'])
     # Find the number of categories from the first data row
     # (user may have not inserted categories' names).
     len_categories = len(data[0])
-
+    # Normalize data and print the graph.
     chart(len_categories, colors, data, args, labels)
 
 # Parses and returns arguments.
@@ -281,7 +284,7 @@ def init():
                         help='Do not print the label column')
     parser.add_argument('--color', nargs='*', choices=available_colors,
                         help='Graph bar color(s)')
-    parser.add_argument('--vertical', action= 'store_true', help='Vertical graph chart')
+    parser.add_argument('--vertical', action= 'store_true', help='Vertical graph')
     parser.add_argument('--stacked', action='store_true',
                         help='Stacked bar graph')
     parser.add_argument('--different_scale', action='store_true',
@@ -308,9 +311,9 @@ def check_data(labels, data, len_categories, color):
             sys.exit(1)
         for c in color:
             colors.append(available_colors.get(c))
-    # Vertical graph chart for multiple series of same scale is not supported yet.
+    # Vertical graph for multiple series of same scale is not supported yet.
     if args['vertical'] and len_categories > 1 and not args['different_scale']:
-        print(">> Error: Vertical graph chart for multiple series of same scale is not supported yet.")
+        print(">> Error: Vertical graph for multiple series of same scale is not supported yet.")
         sys.exit(1)
     # If user hasn't inserted colors, pick the first n colors
     # from the dict (n = number of categories).
@@ -330,7 +333,7 @@ def print_categories(categories, colors):
 # Reads data from a file or stdin and returns them.
 def read_data(filename):
     '''
-    Filename includes categories, labels and data.
+    Filename includes (categories), labels and data.
     We append categories and labels to lists.
     Data are inserted to a list of lists due to the categories.
 
@@ -358,11 +361,11 @@ def read_data(filename):
                     cols = line.split(',')
                 else:
                     cols = line.split()
-                # Line contains categories
+                # Line contains categories.
                 if line.startswith('@'):
                     cols[0] = cols[0].replace("@ ", "")
                     categories = cols
-                # Line contains label and values
+                # Line contains label and values.
                 else:
                     labels.append(cols[0].strip())
                     data_points = []
@@ -371,8 +374,10 @@ def read_data(filename):
                     data.append(data_points)
     f.close()
     len_categories = len(data[0])
+    # Check that all data are valid. (i.e. There are no missing values.)
     colors = check_data(labels, data, len_categories, args['color'])
     if categories:
+        # Print categories' names above the graph.
         print_categories(categories, colors)
 
     return categories, labels, data, colors
