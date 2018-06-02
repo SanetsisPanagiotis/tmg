@@ -261,7 +261,7 @@ def chart(len_categories, colors, data, args, labels):
 def main(args):
     # Determine type of graph
     # Read data
-    categories, labels, data, colors = read_data(args['filename'])
+    categories, labels, data, colors = read_data(args)
     # Find the number of categories from the first data row
     # (user may have not inserted categories' names).
     len_categories = len(data[0])
@@ -293,7 +293,7 @@ def init():
     return args
 
 # Checks that all data were inserted correctly and returns colors.
-def check_data(labels, data, len_categories, color):
+def check_data(labels, data, len_categories, args):
     # Check that there are data for all labels.
     if len(labels) != len(data):
         print(">> Error: Label and data array sizes don't match")
@@ -305,11 +305,11 @@ def check_data(labels, data, len_categories, color):
             sys.exit(1)
     colors = []
     # If user inserts colors, they should be as many as the categories.
-    if color is not None:
-        if len(color) != len_categories:
+    if args['color'] is not None:
+        if len(args['color']) != len_categories:
             print(">> Error: Color and category array sizes don't match")
             sys.exit(1)
-        for c in color:
+        for c in args['color']:
             colors.append(available_colors.get(c))
     # Vertical graph for multiple series of same scale is not supported yet.
     if args['vertical'] and len_categories > 1 and not args['different_scale']:
@@ -331,7 +331,7 @@ def print_categories(categories, colors):
     print('\n\n')
 
 # Reads data from a file or stdin and returns them.
-def read_data(filename):
+def read_data(args):
     '''
     Filename includes (categories), labels and data.
     We append categories and labels to lists.
@@ -342,6 +342,8 @@ def read_data(filename):
     categories = ['boys', 'girls']
     data = [ [20.4, 40.5], [30.7, 100.0], ...]
     '''
+    filename = args['filename']
+
     # TODO: add verbose flag
     stdin = filename == '-'
 
@@ -375,7 +377,7 @@ def read_data(filename):
     f.close()
     len_categories = len(data[0])
     # Check that all data are valid. (i.e. There are no missing values.)
-    colors = check_data(labels, data, len_categories, args['color'])
+    colors = check_data(labels, data, len_categories, args)
     if categories:
         # Print categories' names above the graph.
         print_categories(categories, colors)
