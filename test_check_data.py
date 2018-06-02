@@ -92,7 +92,7 @@ class TestCheckData(unittest.TestCase):
 
     # Test that the first n colors from the dict are returned, in case user has
     # chosen --stacked but no colors (n = number of categories)
-    def test_colors(self):
+    def test_stacked_and_colors(self):
         args = init()
 
         labels = ['2007', '2008', '2009', '2010']
